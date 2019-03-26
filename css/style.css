@@ -1,1 +1,26 @@
 /*Stylesheet by Timothy Prestby 2019*/
+.countries {
+    fill: #FFF;
+    stroke: #CCC;
+    stroke-width: 2px;
+}
+
+.regions {
+    stroke: white;
+    stroke-width: 1px;
+}
+
+.gratLines {
+    fill: none;
+    stroke: rgba(153, 153, 153, 0.203);
+    stroke-width: 1px;
+    
+}
+
+.gratBackground {
+    fill: rgb(135, 163, 221);
+}
+
+.map {
+    border: medium solid #999;
+}
