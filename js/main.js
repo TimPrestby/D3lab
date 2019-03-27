@@ -12,10 +12,10 @@ function setMap(){
         .attr('height',height);
     //Create Albers equal area conic projection centered on China
     var projection = d3.geoAlbers()
-        .center([100.00, 30.60])
-        .rotate([-17.18, 23.64, 0])
-        .parallels([-5, 70.94])
-        .scale(528.28)
+        .center([105.00, 45.60])
+        .rotate([-7.18, 43.64, 0])
+        .parallels([3, 45.94])
+        .scale(1500.28)
         .translate([width / 2, height / 2]);
     //Create path generator
     var path = d3.geoPath()
