@@ -26,9 +26,9 @@ function setMap(){
     //Load CSV attributes
     promises.push(d3.csv('data/AllData.csv'));
     //Load background Continent data
-    promises.push(d3.json('data/asia.json'));
+    promises.push(d3.json('data/asia.topojson'));
     //Load choropleth data
-    promises.push(d3.json('data/provinces.json'));
+    promises.push(d3.json('data/provinces.topojson'));
     //Conduct multiple AJAX calls at the same time
     Promise.all(promises).then(callback);
     //Callback function to format data as array for csv and object for topojson
