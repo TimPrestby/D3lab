@@ -5,11 +5,12 @@ var attrArray = ['Passenger Traffic of Highways(10000 persons)','Freight Traffic
 var csvData;
 //Set initial attribute
 var expressed = attrArray[0]
+console.log(expressed)
 
 //Function: set up choropleth map
 function setMap(){
     //Assign map frame dimensions
-    var width = window.innerWidth * 0.5,
+    var width = window.innerWidth * 0.475,
         height = 460;
 
     //Create new SVG container for the map 
@@ -21,10 +22,10 @@ function setMap(){
     
     //Create Albers equal area conic projection centered on China
     var projection = d3.geoAlbers()
-        .center([115.00, 20.60])
+        .center([125.00, 25.60])
         .rotate([-7.18, 43.64, 0])
         .parallels([3, 45.94])
-        .scale(500)
+        .scale(1000)
         .translate([width / 2, height / 2]);
 
     //Create path generator
@@ -49,6 +50,8 @@ function setMap(){
         csvData = data[0];
         asia = data[1];
         china = data[2];
+        //Place graticule on map
+        setGraticule(map, path);
         //Translate TopoJSON into JSON
         var asiaCountries = topojson.feature(asia, asia.objects.asia),
             chinaRegions = topojson.feature(china, china.objects.provinces).features;
@@ -61,14 +64,15 @@ function setMap(){
             //Assign d attribute to path generator which defines the shape
             .attr('d', path);
 
-        //Place graticule on map
-        setGraticule(map, path);
+       
         //Join CSV data to GeoJSON enumeration units
         chinaRegions=joinData(chinaRegions, csvData)
         //Create color scale
         var colorScale = makeColorScale(csvData);
         //Add enumeration units to the map
         setEnumerationUnits(chinaRegions, map, path, colorScale);
+        //Add coordinated visualization to map
+        setChart(csvData,colorScale);
     };
 };
 
@@ -181,51 +185,84 @@ function choropleth(props, colorScale){
     };
 };
 
-//Function: create bubble chart//
-function createBubble(csvData, colorScale){
-    var diameter = 500;
-    var bubble = d3.pack()
-        .size([diameter, diameter])
-        .padding(1.5);
-
-    var svg = d3.select("body")
+//Function: create chart//
+function setChart(csvData, colorScale){
+    //Set chart dimensions
+    var chartWidth = window.innerWidth * 0.475,
+        chartHeight = 473;
+        leftPadding = 50,
+        rightPadding = 20,
+        topBottomPadding = 5,
+        chartInnerWidth = chartWidth - leftPadding - rightPadding,
+        chartInnerHeight = chartHeight - topBottomPadding * 2,
+        translate = "translate(" + leftPadding + "," + topBottomPadding + ")";
+    //Create a second svg element to hold the bar chart
+    var chart = d3.select("body")
         .append("svg")
-        .attr("width",  window.innerWidth * 0.425)
-        .attr("height", 460)
-        .attr("class", "bubble");
-    //Process CSV data
+        .attr("width", chartWidth)
+        .attr("height", chartHeight)
+        .attr("class", "chart")
+        .attr("transform", translate);
+    //Create a rectangle for chart background fill
+    var chartBackground = chart.append("rect")
+        .attr("class", "chartBackground")
+        .attr("width", chartInnerWidth)
+        .attr("height", chartInnerHeight)
+        .attr("transform", translate);
+    //Create a scale to size bars proportionally
+    var yScale = d3.scaleLinear()
+        .range([463, 0])
+        //Set to maximum attribute value
+        .domain([0,120000]);
+    //Set bars for each province
+    var bars = chart.selectAll('.bar')
+        .data(csvData)
+        .enter()
+        .append('rect')
+        //Sort bars in ascending order
+        .sort(function(a, b){
+            return a[expressed]-b[expressed]
+        })
+        .attr('class',function(d){
+            return 'bar ' + d.name;
+        })
+        //Ensure bars fill the container
+        .attr('width', chartInnerWidth/csvData.length-1)
+        //Ensure bars spread evenly across container by using datum index
+        .attr('x', function(d, i){
+            return i * (chartInnerWidth/csvData.length)+ leftPadding;
+        })
+        .attr('height', function(d){
+            return 463 - yScale(parseFloat(d[expressed]));
+        })
+        .attr('y',function(d){
+            return yScale(parseFloat(d[expressed])) + topBottomPadding;
+        })
+        .style("fill", function(d){
+            return choropleth(d, colorScale);
+        });
+    //Create vertical Axis
+    var yAxis = d3.axisLeft()
+        .scale(yScale);
+    //Place axis
+    var axis = chart.append("g")
+        .attr("class", "axis")
+        .attr("transform", translate)
+        .call(yAxis);
+    //Create frame for chart border
+    var chartFrame = chart.append("rect")
+        .attr("class", "chartFrame")
+        .attr("width", chartInnerWidth)
+        .attr("height", chartInnerHeight)
+        .attr("transform", translate);
+    //Create Dynamic Title
+    var chartTitle = chart.append("text")
+        .attr("x", 60)
+        .attr("y", 40)
+        .attr("class", "chartTitle")
+        .text(expressed);
+};
 
-        //bubbles needs very specific format, convert data to this.
-        var nodes = bubble.nodes({children:csvData}).filter(function(d) { return !d.children; });
-    
-        //setup the chart
-        var bubbles = svg.append("g")
-            .attr("transform", "translate(0,0)")
-            .selectAll(".bubble")
-            .data(nodes)
-            .enter();
-    
-        //create the bubbles
-        bubbles.append("circle")
-            .attr("r", function(d){ return d.r; })
-            .attr("cx", function(d){ return d.x; })
-            .attr("cy", function(d){ return d.y; })
-            .style("fill", function(d) { return color(d.value); });
-    
-        //format the text for each bubble
-        bubbles.append("text")
-            .attr("x", function(d){ return d.x; })
-            .attr("y", function(d){ return d.y + 5; })
-            .attr("text-anchor", "middle")
-            .text(function(d){ return d["Fruit"]; })
-            .style({
-                "fill":"white", 
-                "font-family":"Helvetica Neue, Helvetica, Arial, san-serif",
-                "font-size": "12px"
-            });
-    };
- 
-createBubble();
 
 window.onload = setMap();
 
