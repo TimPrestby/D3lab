@@ -9,16 +9,15 @@ var expressed = attrArray[0]
 //Set chart dimensions
 var chartWidth = window.innerWidth * 0.475,
     chartHeight = 473;
-    leftPadding = 50,
+    leftPadding = 60,
     rightPadding = 20,
     topBottomPadding = 5,
     chartInnerWidth = chartWidth - leftPadding - rightPadding,
     chartInnerHeight = chartHeight - topBottomPadding * 2,
     translate = "translate(" + leftPadding + "," + topBottomPadding + ")";
 
-var yScale = d3.scaleLinear()
-    .range([463, 0])
-    .domain([0, 110]);
+var yScale;
+var chart;
 
 //Function: set up choropleth map
 function setMap(){
@@ -202,8 +201,11 @@ function choropleth(props, colorScale){
 
 //Function: create chart//
 function setChart(csvData, colorScale){
+    yScale=d3.scaleLinear()
+        .range([463,0])
+        .domain([0, d3.max(csvData, function (d) {return parseFloat(d[expressed])*1.1;})]);
     //Create a second svg element to hold the bar chart
-    var chart = d3.select("body")
+    chart = d3.select("body")
         .append("svg")
         .attr("width", chartWidth)
         .attr("height", chartHeight)
@@ -230,14 +232,6 @@ function setChart(csvData, colorScale){
         //Ensure bars fill the container
         .attr('width', chartInnerWidth/csvData.length-1)
 
-    //Create vertical Axis
-    var yAxis = d3.axisLeft()
-        .scale(yScale);
-    //Place axis
-    var axis = chart.append("g")
-        .attr("class", "axis")
-        .attr("transform", translate)
-        .call(yAxis);
     //Create frame for chart border
     var chartFrame = chart.append("rect")
         .attr("class", "chartFrame")
@@ -246,11 +240,11 @@ function setChart(csvData, colorScale){
         .attr("transform", translate);
     //Create Dynamic Title
     var chartTitle = chart.append("text")
-        .attr("x", 60)
+        .attr("x", 70)
         .attr("y", 40)
         .attr("class", "chartTitle")
     //Set bar positions heights, colors
-    updateChart(bars, csvData.length, colorScale);
+    updateChart(bars, csvData.length, colorScale, csvData);
 };
 
 
@@ -297,29 +291,47 @@ function changeAttribute(attribute,csvData){
         .sort(function(a, b){
             return a[expressed]-b[expressed]
         });
-    };
+    updateChart(bars, csvData.length, colorScale, csvData);
+};
 
 //Function: add position size and color bars in chart//
-function updateChart(bars, n, colorScale){
-    console.log()
-        //Position bars
-        bars.attr("x", function(d, i){
-            return i * (chartInnerWidth / n) + leftPadding;
-        })
-        //Resize bars
-        .attr("height", function(d, i){
-            return 463 - yScale(parseFloat(d[expressed]));
-        })
-        .attr("y", function(d, i){
-            return yScale(parseFloat(d[expressed])) + topBottomPadding;
-        })
-        //Color bars
-        .style('fill',function(d){
-            return choropleth(d,colorScale)
-        })
-        //Update chart title
-        var chartTitle = d3.select(".chartTitle")
-        .text(expressed);
+function updateChart(bars, n, colorScale, csvData){
+    //Remove old Axes ticks
+    d3.selectAll("g").remove();
+
+
+    yScale
+        .range([463,0])
+        .domain([0, d3.max(csvData, function (d) {return parseFloat(d[expressed])*1.1;})]
+);            //https://stackoverflow.com/questions/16348717/how-to-get-maximum-value-from-an-array-of-objects-to-use-in-d3-scale-linear-do
+    //Remove old axis
+
+    //Create vertical Axis
+    var yAxis = d3.axisLeft()
+        .scale(yScale);
+    //Place axis
+    var axis = chart.append("g")
+        .attr("class", "axis")
+        .attr("transform", translate)
+        .call(yAxis);
+    //Position bars
+    bars.attr("x", function(d, i){
+        return i * (chartInnerWidth / n) + leftPadding;
+    })
+    //Resize bars
+    .attr("height", function(d, i){
+        return 463 - yScale(parseFloat(d[expressed]));
+    })
+    .attr("y", function(d, i){
+        return yScale(parseFloat(d[expressed])) + topBottomPadding;
+    })
+    //Color bars
+    .style('fill',function(d){
+        return choropleth(d,colorScale)
+    })
+    //Update chart title
+    var chartTitle = d3.select(".chartTitle")
+    .text(expressed);
 };
 
 window.onload = setMap();
