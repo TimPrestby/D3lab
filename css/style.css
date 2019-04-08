@@ -87,3 +87,7 @@ html,body{
 option {
     font-weight: normal;
 }
+
+path[Attributes Style] {
+    d: path("M -6 463.5 H 0.5 V 0.5 H -6");
+}; 

@@ -1,7 +1,7 @@
 /*Stylesheet by Timothy Prestby 2019*/
 (function(){ 
 //Pseudo global variables 
-var attrArray = ['Passenger Traffic of Highways(10000 persons)','Freight Traffic of Highways(10000 tons)','Average Wage of Employed Persons in Urban Units(US dollars)','Total Value of Technical Market(100 million US dollars)',"Total Value of Imports of Foreign-funded Enterprises(1,000 US dollars)","Total Value of Exports of Foreign-funded Enterprises(1,000 US dollars)",'Rate of Loss Due to Bad Quality of Manufactured Products(%)'];
+var attrArray = ['Passenger Traffic of Highways(10000 persons)','Freight Traffic of Highways(10000 tons)','Average Wage of Employed Persons in Urban Units(US dollars)','Total Value of Technical Market(100 million US dollars)',"Total Value of Imports of Foreign-funded Enterprises(1000 US dollars)","Total Value of Exports of Foreign-funded Enterprises(1000 US dollars)",'Rate of Loss Due to Bad Quality of Manufactured Products(%)'];
 var csvData;
 //Set initial attribute
 var expressed = attrArray[0]
@@ -108,6 +108,23 @@ function setEnumerationUnits(chinaRegions, map, path, colorScale){
     .style('fill', function (d){
         return choropleth(d.properties, colorScale);
     });
+
+    //Add Transition operator
+    regions.transition()
+    //Set duration of interaction in milliseconds
+    .duration(2000)
+    .style('fill', function (d){
+        return choropleth(d.properties, colorScale);
+    });
+    //Create event listener to pass properties object into anonymous function
+    regions.on('mouseover',function(d){
+        highlight(d.properties);
+    });
+    //Create event listener that controls dehighlighting
+    regions.on('mouseout',function(d){
+        dehighlight(d.properties);
+    });
+
 };
 
 //Function: set graticule//
@@ -231,7 +248,18 @@ function setChart(csvData, colorScale){
         })
         //Ensure bars fill the container
         .attr('width', chartInnerWidth/csvData.length-1)
+        //Create event listeners for highlighting and dehighlighting using mouse over
+        .on('mouseover',highlight)
+        .on("mouseout", dehighlight);
 
+    //Add transition to bars
+    bars
+        .transition() 
+        //Set delay function to delay the transition
+        .delay(function(d, i){
+            return i *50
+        })
+        .duration(1000);
     //Create frame for chart border
     var chartFrame = chart.append("rect")
         .attr("class", "chartFrame")
@@ -282,15 +310,28 @@ function changeAttribute(attribute,csvData){
     var colorScale = makeColorScale(csvData);
     //Recolor enumeration units
     var regions = d3.selectAll('.regions')
+        //Add Transition operator
+        .transition()
+        //Set duration of interaction in milliseconds
+        .duration(2000)    
         .style('fill',function(d){
             return choropleth(d.properties,colorScale)
         });
     //Manipulate bar graph
     var bars = d3.selectAll('.bar')
         //Sort bars in ascending order
+        
         .sort(function(a, b){
             return a[expressed]-b[expressed]
-        });
+        
+        })
+         //Add transition to bars
+         .transition() 
+         //Set delay function to delay the transition using anonymous function
+         .delay(function(d, i){
+             return i *50
+         })
+         .duration(1000);
     updateChart(bars, csvData.length, colorScale, csvData);
 };
 
@@ -299,12 +340,9 @@ function updateChart(bars, n, colorScale, csvData){
     //Remove old Axes ticks
     d3.selectAll("g").remove();
 
-
     yScale
         .range([463,0])
-        .domain([0, d3.max(csvData, function (d) {return parseFloat(d[expressed])*1.1;})]
-);            //https://stackoverflow.com/questions/16348717/how-to-get-maximum-value-from-an-array-of-objects-to-use-in-d3-scale-linear-do
-    //Remove old axis
+        .domain([0, d3.max(csvData, function (d) {return parseFloat(d[expressed])*1.1;})])
 
     //Create vertical Axis
     var yAxis = d3.axisLeft()
@@ -332,6 +370,41 @@ function updateChart(bars, n, colorScale, csvData){
     //Update chart title
     var chartTitle = d3.select(".chartTitle")
     .text(expressed);
+    //Remove top tick
+    d3.selectAll('.domain').attr('d','M-0,463.5H0.5V0.5H-0');
+
+};
+
+//Function: highlight enumeration units and bars
+function highlight(props){
+    //Change the stroke of the highlighted item by selecting the class
+    var selected = d3.selectAll("." + props.name)
+        .style("stroke", "orange")
+        .style("stroke-width", "2")
+};
+
+//Function: dehighlight regions 
+function dehighlight(props){
+    var selected = d3.selectAll("." + props.name)
+    //Restyle the stroke and stroke-width
+        .style("stroke", function(){
+            //Get the unique stroke element for current DOM element within the desc element
+            return getStyle(this, "stroke")
+        })
+        .style("stroke-width", function(){
+            return getStyle(this, "stroke-width")
+    });
+    //Create function that gets the description text of an element
+    function getStyle(element, styleName){
+        //Select current DOM element
+        var styleText = d3.select(element)
+            .select("desc")
+            //Return text content in desc
+            .text();
+        //Create JSON string
+        var styleObject = JSON.parse(styleText);
+        return styleObject[styleName];
+    };
 };
 
 window.onload = setMap();

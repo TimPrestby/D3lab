@@ -1,9 +1,9 @@
-name,Passenger Traffic of Highways(10000 persons),Freight Traffic of Highways(10000 tons),Average Wage of Employed Persons in Urban Units(US dollars),Total Value of Technical Market(100 million US dollars),"Total Value of Imports of Foreign-funded Enterprises(1,000 US dollars)","Total Value of Exports of Foreign-funded Enterprises(1,000 US dollars)",Rate of Loss Due to Bad Quality of Manufactured Products(%)
+name,Passenger Traffic of Highways(10000 persons),Freight Traffic of Highways(10000 tons),Average Wage of Employed Persons in Urban Units(US dollars),Total Value of Technical Market(100 million US dollars),Total Value of Imports of Foreign-funded Enterprises(1000 US dollars),Total Value of Exports of Foreign-funded Enterprises(1000 US dollars),Rate of Loss Due to Bad Quality of Manufactured Products(%)
 Beijing,48040,19972,17827.41713,585.830618,52046431,12333308,2.1
 Tianjin,13741,32841,12829.32456,82.15048864,29927346,26558355,1.3
 Hebei,39925,189822,8225.454434,8.770409,5124007,6054482,2.5
 Shanxi,18702,102200,7983.301955,6.32658656,3734421,6509349,1.7
-Inner Mongolia,10347,130613,9077.670617,1.79124455,513798,491035,1.9
+InnerMongolia,10347,130613,9077.670617,1.79124455,513798,491035,1.9
 Liaoning,59054,177371,8326.685765,48.04697622,20833530,17920559,3.1
 Jilin,27186,40777,8339.023798,17.30594942,7995370,1342400,1.7
 Heilongjiang,28550,42897,7794.515185,18.70178231,557050,531903,1.5
