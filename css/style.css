@@ -13,7 +13,7 @@ html,body{
 }
 
 .regions {
-    stroke: rgb(112, 112, 112);
+    stroke: #000;
     stroke-width: 2px;
     stroke-linecap: round;
 }
@@ -88,6 +88,23 @@ option {
     font-weight: normal;
 }
 
-path[Attributes Style] {
-    d: path("M -6 463.5 H 0.5 V 0.5 H -6");
-}; 
+.infolabel {
+    position: absolute;
+    height: 30px;
+    min-width: 100px;
+    color: #fff;
+    background-color: #000;
+    border: solid thin #fff;
+    padding: 5px 10px;
+    font-size: .75em;
+    top: -75px;
+}
+
+.infolabel h1 {
+    margin: 0 20px 0 0;
+    padding: 0;
+    display: inline-block;
+    line-height: 1em;
+    font-size: 1em;
+
+}

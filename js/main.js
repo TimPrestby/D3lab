@@ -104,26 +104,25 @@ function setEnumerationUnits(chinaRegions, map, path, colorScale){
     .attr('class', function(d){
         return 'regions ' + d.properties.name;
     })
+    //Return colors
     .attr('d', path)
     .style('fill', function (d){
         return choropleth(d.properties, colorScale);
-    });
-
-    //Add Transition operator
-    regions.transition()
-    //Set duration of interaction in milliseconds
-    .duration(2000)
-    .style('fill', function (d){
-        return choropleth(d.properties, colorScale);
-    });
+    })
     //Create event listener to pass properties object into anonymous function
-    regions.on('mouseover',function(d){
+    .on('mouseover',function(d){
         highlight(d.properties);
-    });
+    })
     //Create event listener that controls dehighlighting
-    regions.on('mouseout',function(d){
+    .on('mouseout',function(d){
         dehighlight(d.properties);
-    });
+    })
+    //Create event listener that controls label
+    .on("mousemove", moveLabel);
+
+    //Set default style for once region is dehighlighted 
+	var desc = regions.append("desc")
+        .text('{"stroke": "#000", "stroke-width": "2px"}');
 
 };
 
@@ -249,17 +248,15 @@ function setChart(csvData, colorScale){
         //Ensure bars fill the container
         .attr('width', chartInnerWidth/csvData.length-1)
         //Create event listeners for highlighting and dehighlighting using mouse over
-        .on('mouseover',highlight)
-        .on("mouseout", dehighlight);
+        .on("mouseover", highlight)
+        .on("mouseout", dehighlight)
+        .on("mousemove", moveLabel);
 
-    //Add transition to bars
-    bars
-        .transition() 
-        //Set delay function to delay the transition
-        .delay(function(d, i){
-            return i *50
-        })
-        .duration(1000);
+
+    //Set default style for once region is dehighlighted 
+	var desc = bars.append("desc")
+        .text('{"stroke": "#000", "stroke-width": "2px"}');
+
     //Create frame for chart border
     var chartFrame = chart.append("rect")
         .attr("class", "chartFrame")
@@ -380,7 +377,8 @@ function highlight(props){
     //Change the stroke of the highlighted item by selecting the class
     var selected = d3.selectAll("." + props.name)
         .style("stroke", "orange")
-        .style("stroke-width", "2")
+        .style("stroke-width", "3")
+    setLabel(props);
 };
 
 //Function: dehighlight regions 
@@ -405,6 +403,52 @@ function dehighlight(props){
         var styleObject = JSON.parse(styleText);
         return styleObject[styleName];
     };
+    d3.select(".infolabel")
+        .remove();
+};
+
+//Function: create dynamic labels
+function setLabel(props){
+    //Create label content as HTML string
+    var labelAttribute = '<h1>' + props[expressed] + '</h1><i><b>' + expressed + '</i></b>';
+    //Create detailed label in html page 
+    var infolabel = d3.select('body')
+        .append('div')
+        //Define class, ID, and add it to HTML
+        .attr('class','infolabel')
+        .attr('id', props.name + '_label')
+        .html(labelAttribute);
+    //Create div that contains the name of the region
+    var regionName = infolabel.append('div')
+        .attr('class', 'labelname')
+        .html('Province: ' + props.name);
+};
+
+//Function: move label where mouse moves
+function moveLabel(){
+    //Determine width of label
+    var labelWidth = d3.select('.infolabel')
+        //Use node() to get the first element in this selection
+        .node()
+        //Return an object containing the sie of the label
+        .getBoundingClientRect()
+        //Examine width to determine how much to shift the mouse over
+        .width;
+
+    //Use coordinates of mousemove event to set label coordinates with offsets from wherever event is
+    var x1 = d3.event.clientX + 10,
+        y1 = d3.event.clientY - 75,
+        x2 = d3.event.clientX - labelWidth - 10,
+        //Used to switch vertical sides
+        y2 = d3.event.clientY + 25;
+    //Test for overflow horizontally (If the event x coordinate is greater than the width of the window and label buffer)
+    var x = d3.event.clientX > window.innerWidth - labelWidth - 20 ? x2 : x1; 
+    //Test for overflow vertically (Is the Y coordinate less than the distance between mouse and upper-left label)
+    var y = d3.event.clientY < 75 ? y2 : y1; 
+    //Select the infolabel currently mousing over
+    d3.select(".infolabel")
+        .style("left", x + "px")
+        .style("top", y + "px");
 };
 
 window.onload = setMap();
