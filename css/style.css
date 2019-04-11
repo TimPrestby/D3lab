@@ -37,6 +37,7 @@ html,body{
 
 .chart {
     margin: 10x 20px 0 0;
+
 }
 
 .chartTitle {
@@ -107,4 +108,27 @@ option {
     line-height: 1em;
     font-size: 1em;
 
+}
+.title{
+    fill: white;
+    position: absolute;
+    top: 100px;
+    min-width: 1000px; 
+}
+
+/*Legend Styles*/
+.legend{
+    min-width: 1500px;
+}
+
+.label{
+    fill: white !important;
+}
+
+.legendTitle{
+    fill:white;
+    font-weight: bolder;
+    font-size: 1.5em;
+   
+    
 }

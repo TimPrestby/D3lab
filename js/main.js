@@ -18,6 +18,15 @@ var chartWidth = window.innerWidth * 0.475,
 
 var yScale;
 var chart;
+var classes;
+var colorClasses = [
+    '#eff3ff',
+    '#bdd7e7',
+    '#6baed6',
+    '#3182bd',
+    '#08519c'
+];
+var color;
 
 //Function: set up choropleth map
 function setMap(){
@@ -86,6 +95,10 @@ function setMap(){
         createDropDown(csvData);
         //Add coordinated visualization to map
         setChart(csvData,colorScale);
+        //Create legend
+        createLegend(csvData,expressed);
+
+
 
     };
 };
@@ -122,8 +135,8 @@ function setEnumerationUnits(chinaRegions, map, path, colorScale){
 
     //Set default style for once region is dehighlighted 
 	var desc = regions.append("desc")
-        .text('{"stroke": "#000", "stroke-width": "2px"}');
-
+        .text('{"fill": '+color+'}');
+        
 };
 
 //Function: set graticule//
@@ -173,18 +186,11 @@ function joinData(chinaRegions, csvData){
 
 //Function: create color scale generator
 function makeColorScale(data){
-    var colorClasses = [
-        '#eff3ff',
-        '#bdd7e7',
-        '#6baed6',
-        '#3182bd',
-        '#08519c'
-    ];
     //Create color scale generator 
     var colorScale = d3.scaleThreshold()
         .range(colorClasses);
     //Build array of all values of given attribute
-    var domainArray = [];
+    var domainArray=[]
     for (var i=0; i<data.length; i++){
         var val = parseFloat(data[i][expressed]);
         //Append val to array
@@ -194,6 +200,11 @@ function makeColorScale(data){
     var clusters = ss.ckmeans(domainArray, 5);
     //Reset domain array to cluster minimum values
     domainArray = clusters.map(function(d){
+        return d3.min(d);
+
+    });
+    //Create Array to contain class breaks for legend
+    classes = clusters.map(function(d){
         return d3.min(d);
     });
     //Remove first value from domain array to create class breakpoints
@@ -252,11 +263,6 @@ function setChart(csvData, colorScale){
         .on("mouseout", dehighlight)
         .on("mousemove", moveLabel);
 
-
-    //Set default style for once region is dehighlighted 
-	var desc = bars.append("desc")
-        .text('{"stroke": "#000", "stroke-width": "2px"}');
-
     //Create frame for chart border
     var chartFrame = chart.append("rect")
         .attr("class", "chartFrame")
@@ -270,6 +276,10 @@ function setChart(csvData, colorScale){
         .attr("class", "chartTitle")
     //Set bar positions heights, colors
     updateChart(bars, csvData.length, colorScale, csvData);
+    //Set default style for once region is dehighlighted 
+
+	var desc = bars.append("desc")
+        .text('{"fill": '+color+'}');
 };
 
 
@@ -304,6 +314,7 @@ function changeAttribute(attribute,csvData){
     //Change expressed value to this.value in the dropdown selection
     expressed=attribute;
     //Redo color scale
+    console.log(expressed)
     var colorScale = makeColorScale(csvData);
     //Recolor enumeration units
     var regions = d3.selectAll('.regions')
@@ -330,6 +341,9 @@ function changeAttribute(attribute,csvData){
          })
          .duration(1000);
     updateChart(bars, csvData.length, colorScale, csvData);
+    //Create legend
+    createLegend(csvData,expressed);
+
 };
 
 //Function: add position size and color bars in chart//
@@ -340,10 +354,11 @@ function updateChart(bars, n, colorScale, csvData){
     yScale
         .range([463,0])
         .domain([0, d3.max(csvData, function (d) {return parseFloat(d[expressed])*1.1;})])
-
+    
     //Create vertical Axis
     var yAxis = d3.axisLeft()
         .scale(yScale);
+    
     //Place axis
     var axis = chart.append("g")
         .attr("class", "axis")
@@ -376,8 +391,7 @@ function updateChart(bars, n, colorScale, csvData){
 function highlight(props){
     //Change the stroke of the highlighted item by selecting the class
     var selected = d3.selectAll("." + props.name)
-        .style("stroke", "orange")
-        .style("stroke-width", "3")
+        .style("fill", "orange")
     setLabel(props);
 };
 
@@ -385,13 +399,11 @@ function highlight(props){
 function dehighlight(props){
     var selected = d3.selectAll("." + props.name)
     //Restyle the stroke and stroke-width
-        .style("stroke", function(){
+        .style("fill", function(){
             //Get the unique stroke element for current DOM element within the desc element
-            return getStyle(this, "stroke")
-        })
-        .style("stroke-width", function(){
-            return getStyle(this, "stroke-width")
-    });
+            return getStyle(this, "fill")
+        });
+        
     //Create function that gets the description text of an element
     function getStyle(element, styleName){
         //Select current DOM element
@@ -449,6 +461,30 @@ function moveLabel(){
     d3.select(".infolabel")
         .style("left", x + "px")
         .style("top", y + "px");
+};
+
+//Function: create legend
+function createLegend(csvData,expressed){
+     //Create legend
+     var linear = d3.scaleQuantize()
+     .domain(classes)
+     .range(colorClasses);
+ 
+        d3.select('body').append('svg').attr('class','legend');
+
+        var legend = d3.select("svg.legend");
+
+        legend.append("g")
+            .attr("class", "legendLinear")
+            .attr("transform", "translate(20,20)");
+        var legendLinear = d3.legendColor()
+            .shapeWidth(185)
+            .orient('horizontal')
+            .scale(linear)
+            .title(expressed)
+        legend.select(".legendLinear")
+            .call(legendLinear);
+        //d3.select('body').append(legend);
 };
 
 window.onload = setMap();
