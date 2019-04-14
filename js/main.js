@@ -226,15 +226,13 @@ function choropleth(props, colorScale){
     };
 };
 
-//    yScale=d3.scaleLog()
-//.base(10)
-
-
 //Function: create chart//
 function setChart(csvData, colorScale){
-    yScale=d3.scaleLinear()
-        .range([463,0])
-        .domain([0, d3.max(csvData, function (d) {return parseFloat(d[expressed])*1.1;})]);
+    yScale=d3.scaleLog()
+        .range([473,0])
+        .domain([.01, d3.max(csvData, function (d) {return parseFloat(d[expressed])*1.2;})])
+        .base(10)
+
     //Create a second svg element to hold the bar chart
     chart = d3.select("body")
         .append("svg")
@@ -276,7 +274,7 @@ function setChart(csvData, colorScale){
     //Create Dynamic Title
     var chartTitle = chart.append("text")
         .attr("x", 70)
-        .attr("y", 40)
+        .attr("y", 30)
         .attr("class", "chartTitle")
     //Set bar positions heights, colors
     updateChart(bars, csvData.length, colorScale, csvData);
@@ -301,7 +299,7 @@ function createDropDown(csvData){
     var titleOption = dropdown.append("option")
         .attr("class", "titleOption")
         .attr("disabled", "true")
-        .text("Select Attribute");
+        .text("Select Attribute...");
     //Add attribute name options
     var attrOptions = dropdown.selectAll('attrOptions')
         .data(attrArray)
@@ -356,12 +354,15 @@ function updateChart(bars, n, colorScale, csvData){
     d3.selectAll("g").remove();
 
     yScale
-        .range([463,0])
-        .domain([0, d3.max(csvData, function (d) {return parseFloat(d[expressed])*1.1;})])
+        .range([473,0])
+        .domain([.01, d3.max(csvData, function (d) {return (parseFloat(d[expressed]))*1.5;})])
     
     //Create vertical Axis
     var yAxis = d3.axisLeft()
-        .scale(yScale);
+        .scale(yScale)
+        //Remove unnecessary ticks
+        .tickSize(0)
+        .ticks(10, ',~f');
     
     //Place axis
     var axis = chart.append("g")
@@ -374,6 +375,7 @@ function updateChart(bars, n, colorScale, csvData){
     })
     //Resize bars
     .attr("height", function(d, i){
+        console.log(463 - yScale(d[expressed]))
         return 463 - yScale(parseFloat(d[expressed]));
     })
     .attr("y", function(d, i){
@@ -488,7 +490,6 @@ function createLegend(csvData,expressed){
             .title(expressed)
         legend.select(".legendLinear")
             .call(legendLinear);
-        //d3.select('body').append(legend);
 };
 
 window.onload = setMap();

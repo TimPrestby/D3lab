@@ -9,13 +9,15 @@ html,body{
     stroke: #CCC;
     stroke-width: 2px;
     stroke-linecap: round;
+    opacity: .3;
 
 }
 
 .regions {
-    stroke: #000;
+    stroke: rgba(0, 0, 0, 0.397);
     stroke-width: 2px;
     stroke-linecap: round;
+    
 }
 
 .gratLines {
@@ -54,7 +56,7 @@ html,body{
 .chartFrame {
     fill: none;
     stroke: #999;
-    stroke-width: 3px;
+    stroke-width: 1px;
     shape-rendering: crispEdges;
 }
 
@@ -112,7 +114,7 @@ option {
 .title{
     fill: white;
     position: absolute;
-    top: 100px;
+    top: 75px;
     min-width: 1000px; 
 }
 
