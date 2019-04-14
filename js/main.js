@@ -15,7 +15,7 @@ var chartWidth = window.innerWidth * 0.475,
     chartInnerWidth = chartWidth - leftPadding - rightPadding,
     chartInnerHeight = chartHeight - topBottomPadding * 2,
     translate = "translate(" + leftPadding + "," + topBottomPadding + ")";
-
+var dropValue;
 var yScale;
 var chart;
 var classes;
@@ -53,6 +53,9 @@ function setMap(){
     var path = d3.geoPath()
         .projection(projection);
 
+    //Place graticule on map
+    setGraticule(map, path);
+
     //Assign new variable as array to hold data to be loaded
     var promises = [];
     //Load CSV attributes
@@ -70,8 +73,6 @@ function setMap(){
         csvData = data[0];
         asia = data[1];
         china = data[2];
-        //Place graticule on map
-        setGraticule(map, path);
         //Translate TopoJSON into JSON
         var asiaCountries = topojson.feature(asia, asia.objects.asia),
             chinaRegions = topojson.feature(china, china.objects.provinces).features;
@@ -84,7 +85,6 @@ function setMap(){
             //Assign d attribute to path generator which defines the shape
             .attr('d', path);
 
-       
         //Join CSV data to GeoJSON enumeration units
         chinaRegions=joinData(chinaRegions, csvData)
         //Create color scale
@@ -97,6 +97,10 @@ function setMap(){
         setChart(csvData,colorScale);
         //Create legend
         createLegend(csvData,expressed);
+        d3.select("button").on("change", makeColorScale(csvData) )
+
+        //Add Buttons
+        //createButtons();
 
 
 
@@ -186,9 +190,6 @@ function joinData(chinaRegions, csvData){
 
 //Function: create color scale generator
 function makeColorScale(data){
-    //Create color scale generator 
-    var colorScale = d3.scaleThreshold()
-        .range(colorClasses);
     //Build array of all values of given attribute
     var domainArray=[]
     for (var i=0; i<data.length; i++){
@@ -196,6 +197,13 @@ function makeColorScale(data){
         //Append val to array
         domainArray.push(val);
     };
+    //Determine the radiovalue that is active
+    var radioValue = d3.select('input[name="button"]:checked').node().value;
+    console.log(radioValue);
+    if (radioValue=='breaks'){
+    //Create color scale generator 
+    var colorScale = d3.scaleThreshold()
+        .range(colorClasses);
     //Cluster data using ckmeans clustering to create natural breaks
     var clusters = ss.ckmeans(domainArray, 5);
     //Reset domain array to cluster minimum values
@@ -211,7 +219,19 @@ function makeColorScale(data){
     domainArray.shift();
     //Assign array of last 4 cluster minimums as domain
     colorScale.domain(domainArray);
-    return colorScale;
+    //Update graph by getting value of dropdown
+
+
+
+    return colorScale } else {
+    //Set scale to quantile
+        var colorScale = d3.scaleQuantile()
+            .range(colorClasses);
+        colorScale.domain(domainArray);
+
+        return colorScale;
+    };
+
 };
 
 //Function: test for data value and return color//
@@ -288,11 +308,13 @@ function setChart(csvData, colorScale){
 //Function: create dropdown menu to choose attribute//
 function createDropDown(csvData){
     //Add select element to the body
-    var dropdown = d3.select('body')
+        dropdown = d3.select('body')
         .append('select')
         .attr('class','dropdown')
         //Listen for change in select element
         .on('change', function(){
+            selected = d3.select(".dropdown").node().value;
+            console.log(selected)
             changeAttribute(this.value,csvData)
         });
     //Add initial option as an affordance text
@@ -316,7 +338,6 @@ function changeAttribute(attribute,csvData){
     //Change expressed value to this.value in the dropdown selection
     expressed=attribute;
     //Redo color scale
-    console.log(expressed)
     var colorScale = makeColorScale(csvData);
     //Recolor enumeration units
     var regions = d3.selectAll('.regions')
@@ -375,7 +396,6 @@ function updateChart(bars, n, colorScale, csvData){
     })
     //Resize bars
     .attr("height", function(d, i){
-        console.log(463 - yScale(d[expressed]))
         return 463 - yScale(parseFloat(d[expressed]));
     })
     .attr("y", function(d, i){
