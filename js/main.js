@@ -97,11 +97,8 @@ function setMap(){
         setChart(csvData,colorScale);
         //Create legend
         createLegend(csvData,expressed);
-        d3.select("button").on("change", makeColorScale(csvData) )
-
-        //Add Buttons
-        //createButtons();
-
+        //Add event listener to change classification
+        d3.select("button").on("change", makeColorScale(csvData))
 
 
     };
@@ -313,9 +310,8 @@ function createDropDown(csvData){
         .attr('class','dropdown')
         //Listen for change in select element
         .on('change', function(){
-            selected = d3.select(".dropdown").node().value;
-            console.log(selected)
             changeAttribute(this.value,csvData)
+            dropValue = d3.select(".dropdown").node().value;
         });
     //Add initial option as an affordance text
     var titleOption = dropdown.append("option")
@@ -335,6 +331,8 @@ function createDropDown(csvData){
 
 //Function: dropdown change listener handler
 function changeAttribute(attribute,csvData){
+    dropValue = d3.select(".dropdown").node().value;
+    console.log(dropValue)
     //Change expressed value to this.value in the dropdown selection
     expressed=attribute;
     //Redo color scale
