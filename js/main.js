@@ -135,7 +135,7 @@ function setEnumerationUnits(chinaRegions, map, path, colorScale){
 
     //Set default style for once region is dehighlighted 
 	var desc = regions.append("desc")
-        .text('{"fill": '+color+'}');
+        .text('{"opacity": "1"}');
         
 };
 
@@ -226,6 +226,10 @@ function choropleth(props, colorScale){
     };
 };
 
+//    yScale=d3.scaleLog()
+//.base(10)
+
+
 //Function: create chart//
 function setChart(csvData, colorScale){
     yScale=d3.scaleLinear()
@@ -279,7 +283,7 @@ function setChart(csvData, colorScale){
     //Set default style for once region is dehighlighted 
 
 	var desc = bars.append("desc")
-        .text('{"fill": '+color+'}');
+        .text('{"opacity": "1"}');
 };
 
 
@@ -391,7 +395,7 @@ function updateChart(bars, n, colorScale, csvData){
 function highlight(props){
     //Change the stroke of the highlighted item by selecting the class
     var selected = d3.selectAll("." + props.name)
-        .style("fill", "orange")
+        .style("opacity", ".2")
     setLabel(props);
 };
 
@@ -399,9 +403,9 @@ function highlight(props){
 function dehighlight(props){
     var selected = d3.selectAll("." + props.name)
     //Restyle the stroke and stroke-width
-        .style("fill", function(){
+        .style("opacity", function(){
             //Get the unique stroke element for current DOM element within the desc element
-            return getStyle(this, "fill")
+            return getStyle(this, "opacity")
         });
         
     //Create function that gets the description text of an element
