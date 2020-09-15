@@ -373,8 +373,11 @@
         //Define new scaling for values
         yScale
             .range([473, 0])
-            .domain([.01, d3.max(csvData, function (d) {
-                return (parseFloat(d[expressed])) * 1.5;
+            .domain([d3.min(csvData, function (d) {
+                return (parseFloat(d[expressed])) * 1.1
+            }), 
+            d3.max(csvData, function (d) {
+                return (parseFloat(d[expressed])) * 1.1;
             })]);
 
         //Create vertical Axis
